@@ -1,6 +1,7 @@
 name: Build and push Docker image
 
 on:
+  workflow_dispatch:
   schedule:
     # 9am every day on the month we have our event.
     - cron:  '0 9 * 10 *'
