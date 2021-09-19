@@ -12,12 +12,12 @@ env:
 jobs:
   mindustry:
     runs-on: ubuntu-latest
-  outputs:
-    tag: ${{ steps.release.outputs.tag }}
-  steps:
-    - name: Get latest release
-      id: release
-      run: echo "::set-output name=tag::$(curl --silent https://api.github.com/repos/Anuken/Mindustry/releases/latest | grep -Po '(?<=\"tag_name\": \").+(?=\",)')"
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+    steps:
+      - name: Get latest release
+        id: release
+        run: echo "::set-output name=tag::$(curl --silent https://api.github.com/repos/Anuken/Mindustry/releases/latest | grep -Po '(?<=\"tag_name\"\: \").+(?=\",)')"
     
   docker:
     runs-on: ubuntu-latest
