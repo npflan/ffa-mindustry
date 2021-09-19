@@ -54,9 +54,8 @@ jobs:
           tags: ${{ needs.mindustry.outputs.tag }}
 
       - name: Push Docker image
-        if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
         uses: docker/build-push-action@v2.7.0
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ needs.mindustry.outputs.tag }}
