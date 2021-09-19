@@ -1,0 +1,61 @@
+name: Build and push Docker image
+
+on:
+  schedule:
+    # 9am every day on the month we have our event.
+    - cron:  '0 9 * 10 *'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  mindustry:
+    runs-on: ubuntu-latest
+  outputs:
+    tag: ${{ steps.release.outputs.tag }}
+  steps:
+    - name: Get latest release
+      id: release
+      run: echo "::set-output name=tag::$(curl --silent https://api.github.com/repos/Anuken/Mindustry/releases/latest | grep -Po '(?<=\"tag_name\": \").+(?=\",)')"
+    
+  docker:
+    runs-on: ubuntu-latest
+    needs: mindustry
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      
+      - name: Get latest Mindustry release
+        run: wget https://github.com/Anuken/Mindustry/releases/download/${{ needs.mindustry.outputs.tag }}/server-release.jar
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1.10.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v3.5.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v2.7.0
+        with:
+          context: .
+          push: false
+          tags: ${{ needs.mindustry.outputs.tag }}
+
+      - name: Push Docker image
+        if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+        uses: docker/build-push-action@v2.7.0
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
